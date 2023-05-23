@@ -1,13 +1,12 @@
-import React, { useState } from "react";
-import { TableCell, TableRow, Table, TextField } from "@mui/material";
+import React, { useEffect, useState } from "react";
+import { TableCell, TableRow, TextField } from "@mui/material";
 import {
   RiDeleteBin6Line,
   RiDeleteBin6Fill,
   RiEdit2Line,
   RiEdit2Fill,
 } from "react-icons/ri";
-import { GrEdit } from "react-icons/gr";
-import { useAppDispatch, useAppSelector } from "../app/hooks";
+import { useAppDispatch } from "../app/hooks";
 import { deleteProduct, editDescription } from "../app/store";
 
 interface TableRowProps {
@@ -23,25 +22,42 @@ const TableRowComponent: React.FC<TableRowProps> = (props) => {
   const [hoverEdit, setHoverEdit] = useState<boolean>(false);
   const [openEditor, setOpenEditor] = useState<boolean>(false);
   const [text, setText] = useState<string>("");
-  function descriptionToggle(id: number) {
+  function descriptionToggle() {
     setText(props.description);
     setOpenEditor((prev) => !prev);
-    if (openEditor) {
-      fetch(`http://localhost:3000/products/${id}`, {
-        method: "PATCH",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
-        },
-        // Fields that to be updated are passed
-        body: JSON.stringify({
-          description: text,
-        }),
-      });
-
-      dispatch(editDescription({ id, description: text }));
-    }
   }
+
+  useEffect(() => {
+    let timeoutDebouncing: NodeJS.Timeout;
+    let timeoutEditClose: NodeJS.Timeout;
+    if (text) {
+      timeoutDebouncing = setTimeout(() => {
+        fetch(`http://localhost:3000/products/${props.id}`, {
+          method: "PATCH",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            description: text,
+          }),
+        });
+
+        dispatch(editDescription({ id: props.id, description: text }));
+      }, 800);
+
+      timeoutEditClose = setTimeout(() => {
+        setOpenEditor(false);
+      }, 1500);
+    }
+
+    return () => {
+      if (text) {
+        clearTimeout(timeoutDebouncing);
+        clearTimeout(timeoutEditClose);
+      }
+    };
+  }, [text, dispatch, props.id]);
 
   return (
     <TableRow key={props.id}>
@@ -49,23 +65,21 @@ const TableRowComponent: React.FC<TableRowProps> = (props) => {
       <TableCell>
         {openEditor ? (
           <TextField
-            // onChange={() => {
-            //   setText();
-            //   fetch(patch)
-            // }}
             value={text}
             onChange={(e) => setText(e.target.value)}
             sx={{ width: "100%", padding: "1px" }}
           />
         ) : (
-          <p>{props.description}</p>
+          <p onClick={descriptionToggle} style={{ cursor: "pointer" }}>
+            {props.description}
+          </p>
         )}
       </TableCell>
       <TableCell>{props.product_code}</TableCell>
       <TableCell>
         <img
           src={props.imageURL}
-          alt="product image"
+          alt="product"
           style={{ width: "200px", height: "100px" }}
         />
       </TableCell>
@@ -97,7 +111,7 @@ const TableRowComponent: React.FC<TableRowProps> = (props) => {
         }}
       >
         {hoverEdit ? (
-          <RiEdit2Fill size={30} onClick={() => descriptionToggle(props.id)} />
+          <RiEdit2Fill size={30} onClick={() => descriptionToggle()} />
         ) : (
           <RiEdit2Line size={30} />
         )}

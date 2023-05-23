@@ -11,6 +11,7 @@ interface InitialStateInterface {
     description: string;
     imageURL: string;
   }[];
+  sortOrder: number[];
 }
 
 export const fetchProduct = createAsyncThunk(
@@ -24,7 +25,10 @@ export const fetchProduct = createAsyncThunk(
   }
 );
 
-const initialState: InitialStateInterface = { products: [] };
+const initialState: InitialStateInterface = {
+  products: [],
+  sortOrder: JSON.parse(localStorage.getItem("sortOrder") as string) || [],
+};
 export const ProductSlice = createSlice({
   name: "products",
   initialState,
@@ -51,6 +55,10 @@ export const ProductSlice = createSlice({
   extraReducers: (builder) => {
     builder.addCase(fetchProduct.fulfilled, (state, action) => {
       state.products = action.payload;
+      state.sortOrder =
+        JSON.parse(localStorage.getItem("sortOrder") as string) ||
+        state.products.map((item) => item.id);
+      localStorage.setItem("sortOrder", JSON.stringify(state.sortOrder));
     });
   },
 });
