@@ -6,34 +6,33 @@ import {
   TableRow,
   Table,
 } from "@mui/material";
+import TableRowComponent from "./TableRowComponent";
 import { useAppSelector } from "../app/hooks";
 
 const TableComponent = () => {
   const products = useAppSelector((state) => state.productReducer.products);
 
   return (
-    <Table sx={{ width: "80%", margin: "auto" }}>
+    <Table>
       <TableHead>
         <TableRow sx={{ backgroundColor: "yellow" }}>
-          <TableCell sx={{ width: "25%" }}>"id"</TableCell>
-          <TableCell sx={{ width: "25%" }}>description</TableCell>
-          <TableCell sx={{ width: "25%" }}>code</TableCell>
-          <TableCell sx={{ width: "25%" }}>image</TableCell>
+          <TableCell sx={{ width: "10%" }}>"id"</TableCell>
+          <TableCell sx={{ width: "30%" }}>description</TableCell>
+          <TableCell sx={{ width: "20%" }}>code</TableCell>
+          <TableCell sx={{ width: "20%" }}>image</TableCell>
+          <TableCell sx={{ width: "10%" }}>delete</TableCell>
+          <TableCell sx={{ width: "10%" }}>edit</TableCell>
         </TableRow>
       </TableHead>
       <TableBody>
         {products.map((item) => (
-          <TableRow key={item.id}>
-            <TableCell>{item.id}</TableCell>
-            <TableCell>{item.description}</TableCell>
-            <TableCell>{item.product_code}</TableCell>
-            <TableCell>
-              <img
-                src={item.imageURL}
-                style={{ width: "200px", height: "100px" }}
-              />
-            </TableCell>
-          </TableRow>
+          <TableRowComponent
+            key={item.id}
+            id={item.id}
+            product_code={item.product_code}
+            description={item.description}
+            imageURL={item.imageURL}
+          />
         ))}
       </TableBody>
     </Table>

@@ -1,54 +1,130 @@
-import { Button, FormControl, Input, TextareaAutosize } from "@mui/material";
-import React, { useState } from "react";
+import {
+  Box,
+  Button,
+  FormControl,
+  Input,
+  TextField,
+  TextareaAutosize,
+  Typography,
+} from "@mui/material";
+
+import React, { FormEvent, useState } from "react";
 import { useForm } from "react-hook-form";
+import { useAppDispatch, useAppSelector } from "../app/hooks";
+import { addProduct } from "../app/store";
 
 interface FormTypes {
-  code: string;
+  product_code: string;
   description: string;
   imageURL: string;
 }
 
 function FormComponent() {
+  const products = useAppSelector((state) => state.productReducer.products);
+
+  const dispatch = useAppDispatch();
+
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors },
   } = useForm<FormTypes>();
 
-  const [er, setEr] = useState<string>("");
+  const onSubmit = handleSubmit(async (data) => {
+    const res = await fetch("http://localhost:3000/products", {
+      method: "POST",
+      headers: {
+        "Content-type": "application/json",
+      },
+      body: JSON.stringify(data),
+    });
+    const product = await res.json();
+    // const { log } = console;
+    console.log(product);
+    dispatch(addProduct(product));
+    reset({
+      product_code: "",
+      description: "",
+      imageURL: "",
+    });
+  });
 
   return (
-    <div>
-      <form
-        onSubmit={handleSubmit((data) => {
-          console.log(data);
-        })}
+    <>
+      <Typography
+        variant="h4"
+        sx={{
+          marginTop: "40px",
+          marginBottom: "20px",
+          textAlign: "center",
+          color: "gray",
+        }}
       >
-        <Input
-          {...register("code", {
+        Enter Product Details
+      </Typography>
+      <form
+        onSubmit={onSubmit}
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          gap: "6px",
+          width: "60%",
+          minWidth: "250px",
+          margin: "auto",
+
+          marginBottom: "40px",
+        }}
+      >
+        <TextField
+          color={errors.product_code ? "error" : "primary"}
+          label="product code"
+          margin="normal"
+          sx={{ width: "60%", minWidth: "230px" }}
+          {...register("product_code", {
             required: "required",
             pattern: {
               value: /^[-\d]+$/,
-              message: "'Only numbers and hyphens are allowed.'",
+              message: "Only numbers and hyphens are allowed.",
             },
           })}
-          placeholder="product code"
         />
-        {errors.code ? <p>{errors.code.message}</p> : ""}
-        <TextareaAutosize
+        {errors.product_code?.message ===
+          "Only numbers and hyphens are allowed." && (
+          <Typography variant="subtitle2" sx={{ color: "red" }}>
+            {errors.product_code?.message}
+          </Typography>
+        )}
+        <TextField
+          color={errors.description && "error"}
+          label="description"
+          margin="normal"
           minRows={2}
-          {...(register("description"), { required: true })}
-          placeholder="description"
+          {...register("description", {
+            required: "required",
+          })}
+          sx={{ width: "60%", minWidth: "230px" }}
         />
-        {errors.description && <p>{errors.description?.message}</p>}
-        <Input
-          {...(register("imageURL"), { required: true })}
-          placeholder="image URL"
+
+        <TextField
+          color={errors.imageURL && "error"}
+          label="imageURl"
+          margin="normal"
+          {...register("imageURL", {
+            required: "required",
+          })}
+          sx={{ width: "60%", minWidth: "230px" }}
         />
-        {/* {<p>{errors.imageURL?.message}</p>} */}
-        <Button type="submit">Submit</Button>
+        <Button
+          variant="contained"
+          type="submit"
+          sx={{ width: "40%", minWidth: "150px" }}
+        >
+          Submit
+        </Button>
       </form>
-    </div>
+    </>
   );
 }
 
