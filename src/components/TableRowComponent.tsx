@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { TableCell, TableRow, TextField } from "@mui/material";
+import { Box, TableCell, TableRow, TextField } from "@mui/material";
+import { CSS } from "@dnd-kit/utilities";
 import {
   RiDeleteBin6Line,
   RiDeleteBin6Fill,
@@ -8,6 +9,8 @@ import {
 } from "react-icons/ri";
 import { useAppDispatch } from "../app/hooks";
 import { deleteProduct, editDescription } from "../app/store";
+import { useSortable } from "@dnd-kit/sortable";
+import { GrDrag } from "react-icons/gr";
 
 interface TableRowProps {
   id: number;
@@ -59,8 +62,16 @@ const TableRowComponent: React.FC<TableRowProps> = (props) => {
     };
   }, [text, dispatch, props.id]);
 
+  const { attributes, listeners, setNodeRef, transform, transition } =
+    useSortable({ id: props.id });
+
   return (
-    <TableRow key={props.id}>
+    <TableRow
+      sx={{
+        transform: CSS.Transform.toString(transform),
+        transition,
+      }}
+    >
       <TableCell>{props.id}</TableCell>
       <TableCell>
         {openEditor ? (
@@ -95,10 +106,19 @@ const TableRowComponent: React.FC<TableRowProps> = (props) => {
         {hover ? (
           <RiDeleteBin6Fill
             size={30}
-            onClick={() => dispatch(deleteProduct(props.id))}
+            onClick={() => {
+              dispatch(deleteProduct(props.id));
+              console.log("clicked deelteed");
+            }}
           />
         ) : (
-          <RiDeleteBin6Line size={30} />
+          <RiDeleteBin6Line
+            size={30}
+            onClick={() => {
+              dispatch(deleteProduct(props.id));
+              console.log("clicked deelteed");
+            }}
+          />
         )}
       </TableCell>
       <TableCell
@@ -115,6 +135,17 @@ const TableRowComponent: React.FC<TableRowProps> = (props) => {
         ) : (
           <RiEdit2Line size={30} />
         )}
+      </TableCell>
+      <TableCell
+        ref={setNodeRef}
+        {...attributes}
+        {...listeners}
+        // sx={{
+        //   transform: CSS.Transform.toString(transform),
+        //   transition,
+        // }}
+      >
+        <GrDrag size={30} />
       </TableCell>
     </TableRow>
   );

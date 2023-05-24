@@ -40,7 +40,6 @@ function FormComponent() {
       body: JSON.stringify(data),
     });
     const product = await res.json();
-    // const { log } = console;
     console.log(product);
     dispatch(addProduct(product));
     reset({

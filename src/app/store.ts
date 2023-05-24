@@ -4,24 +4,31 @@ import {
   createSlice,
 } from "@reduxjs/toolkit";
 
+interface ProductsInterface {
+  id: number;
+  product_code: string;
+  description: string;
+  imageURL: string;
+}
+
 interface InitialStateInterface {
-  products: {
-    id: number;
-    product_code: string;
-    description: string;
-    imageURL: string;
-  }[];
-  sortOrder: number[];
+  products: ProductsInterface[];
+  sortOrder: ProductsInterface[];
 }
 
 export const fetchProduct = createAsyncThunk(
   "products/fetch",
   async (thunkApi) => {
-    const response = await fetch("http://localhost:3000/products", {
-      method: "GET",
-    });
-    const data = await response.json();
-    return data;
+    if (!localStorage.getItem("sortOrder")) {
+      const response = await fetch("http://localhost:3000/products", {
+        method: "GET",
+      });
+      const data = await response.json();
+      localStorage.setItem("sortOrder", JSON.stringify(data));
+      return data;
+    } else {
+      return JSON.parse(localStorage.getItem("sortOrder") as string);
+    }
   }
 );
 
@@ -35,14 +42,25 @@ export const ProductSlice = createSlice({
   reducers: {
     addProduct(state, action) {
       state.products = [action.payload, ...state.products];
+      localStorage.setItem(
+        "sortOrder",
+        JSON.stringify([action.payload, ...state.products])
+      );
     },
     deleteProduct(state, action) {
+      console.log("dleete");
       state.products = state.products.filter(
         (item) => item.id !== action.payload
       );
+      localStorage.setItem("sortOrder", JSON.stringify(state.products));
       fetch(`http://localhost:3000/products/${action.payload}`, {
         method: "DELETE",
       });
+    },
+    dragSort(state, action) {
+      state.products = [...action.payload];
+
+      localStorage.setItem("sortOrder", JSON.stringify(state.products));
     },
     editDescription(state, action) {
       state.products = state.products.map((item) => {
@@ -55,10 +73,9 @@ export const ProductSlice = createSlice({
   extraReducers: (builder) => {
     builder.addCase(fetchProduct.fulfilled, (state, action) => {
       state.products = action.payload;
-      state.sortOrder =
-        JSON.parse(localStorage.getItem("sortOrder") as string) ||
-        state.products.map((item) => item.id);
-      localStorage.setItem("sortOrder", JSON.stringify(state.sortOrder));
+      if (!JSON.parse(localStorage.getItem("sortOrder") as string)) {
+        localStorage.setItem("sortOrder", JSON.stringify(state.sortOrder));
+      }
     });
   },
 });
@@ -71,5 +88,5 @@ export type RootState = ReturnType<typeof store.getState>;
 // Inferred type: {posts: PostsState, comments: CommentsState, users: UsersState}
 export type AppDispatch = typeof store.dispatch;
 
-export const { addProduct, deleteProduct, editDescription } =
+export const { addProduct, deleteProduct, editDescription, dragSort } =
   ProductSlice.actions;
