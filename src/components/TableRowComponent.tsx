@@ -21,9 +21,9 @@ interface TableRowProps {
 
 const TableRowComponent: React.FC<TableRowProps> = (props) => {
   const dispatch = useAppDispatch();
-  const [hover, setHover] = useState<boolean>(false);
-  const [hoverEdit, setHoverEdit] = useState<boolean>(false);
-  const [openEditor, setOpenEditor] = useState<boolean>(false);
+  const [hover, setHover] = useState(false);
+  const [hoverEdit, setHoverEdit] = useState(false);
+  const [openEditor, setOpenEditor] = useState(false);
   const [text, setText] = useState<string>("");
   function descriptionToggle() {
     setText(props.description);
@@ -145,7 +145,7 @@ const TableRowComponent: React.FC<TableRowProps> = (props) => {
         //   transition,
         // }}
       >
-        <GrDrag size={30} />
+        <GrDrag size={30} style={{ cursor: "pointer" }} />
       </TableCell>
     </TableRow>
   );
